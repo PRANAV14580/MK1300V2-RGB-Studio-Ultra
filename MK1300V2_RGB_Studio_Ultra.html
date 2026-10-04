@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MK1300 V2 RGB Studio Ultra</title>
+<style>
+:root{
+  --bg:#060810;--panel:#0b1020cc;--panel2:#11182b;--line:#222b43;
+  --text:#edf4ff;--muted:#8d99b3;--accent:#7d5cff;--accent2:#00d8ff;
+  --good:#2be3a0;--bad:#ff5f7c;--gold:#ffc857;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;color:var(--text);font-family:Inter,Segoe UI,Arial,sans-serif;min-height:100vh;
+  background:
+  radial-gradient(circle at 10% -10%,#5634c044 0,transparent 30%),
+  radial-gradient(circle at 100% 0,#00b8d944 0,transparent 28%),
+  linear-gradient(180deg,#060810,#080b14 55%,#05070d);
+}
+body:before{
+  content:"";position:fixed;inset:0;pointer-events:none;opacity:.26;
+  background-image:linear-gradient(#ffffff05 1px,transparent 1px),linear-gradient(90deg,#ffffff05 1px,transparent 1px);
+  background-size:32px 32px;mask-image:linear-gradient(to bottom,#000 0,transparent 75%);
+}
+.app{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+.sidebar{
+  position:sticky;top:0;height:100vh;padding:22px 18px;border-right:1px solid var(--line);
+  background:#080b14d9;backdrop-filter:blur(20px);z-index:10
+}
+.brand{font-size:21px;font-weight:900;letter-spacing:.3px}
+.brand b{background:linear-gradient(90deg,#9d88ff,#32e7ff);-webkit-background-clip:text;color:transparent}
+.brand small{display:block;margin-top:5px;font-size:11px;color:var(--muted);font-weight:600}
+.status{margin:20px 0;padding:13px;border:1px solid var(--line);border-radius:16px;background:#0d1322}
+.statusline{display:flex;align-items:center;gap:8px;font-size:13px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--bad);box-shadow:0 0 16px currentColor}
+.status p{margin:7px 0 0;color:var(--muted);font-size:11px;line-height:1.4}
+.btn,.nav{
+  border:0;border-radius:12px;padding:11px 13px;font-weight:800;cursor:pointer;transition:.18s;
+}
+.btn:hover,.nav:hover{transform:translateY(-1px)}
+.btn.primary{width:100%;color:#fff;background:linear-gradient(135deg,#7658ff,#3b8cff);box-shadow:0 10px 28px #604cff30}
+.btn.secondary{width:100%;margin-top:8px;color:#dce6ff;background:#11182a;border:1px solid var(--line)}
+.navtitle{margin:22px 6px 8px;font-size:10px;letter-spacing:1.4px;color:#6e7a98;text-transform:uppercase;font-weight:900}
+.nav{display:block;width:100%;text-align:left;background:transparent;color:#aab6cf;margin:3px 0}
+.nav.active{background:linear-gradient(90deg,#1b2340,#12192d);color:white;border:1px solid #26314b}
+.main{padding:28px;min-width:0}
+.top{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;margin-bottom:18px}
+h1{font-size:29px;margin:0;letter-spacing:-.6px}
+.sub{color:var(--muted);font-size:13px;margin-top:7px}
+.badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.badge{font-size:11px;color:#b9c4df;background:#0e1425;border:1px solid var(--line);padding:8px 11px;border-radius:999px}
+.grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,.6fr);gap:18px}
+.card{
+  background:linear-gradient(180deg,#0f1527e8,#0a0f1de8);border:1px solid var(--line);
+  border-radius:20px;padding:17px;box-shadow:0 20px 55px #0005;
+}
+.card h3{font-size:14px;margin:0 0 14px}
+.keyboard-shell{
+  position:relative;min-width:835px;height:305px;padding:18px;border-radius:22px;
+  background:linear-gradient(180deg,#161e31,#090e19 80%);
+  border:1px solid #2f3a55;box-shadow:inset 0 0 0 1px #05070d,0 25px 60px #0008;
+  overflow:hidden
+}
+.keyboard-shell:before{
+  content:"";position:absolute;inset:-20%;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),#7d5cff18,transparent 28%);
+}
+.keys{position:relative;width:785px;height:270px;margin:auto;z-index:2}
+.key{
+  position:absolute;height:41px;display:flex;align-items:center;justify-content:center;
+  border:1px solid #33405f;border-radius:8px;background:linear-gradient(180deg,#1b2438,#101625);
+  color:#eff4ff;font-size:11px;box-shadow:inset 0 -3px 7px #0009,0 4px 8px #0008;
+  transition:transform .12s,border-color .08s,box-shadow .08s,background .08s;
+  user-select:none;cursor:pointer
+}
+.key:hover{transform:translateY(-2px);z-index:3}
+.key.selected{outline:2px solid #fff;outline-offset:1px}
+.previewbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.previewname{font-size:12px;color:#c8d4ef}.previewname b{color:#fff}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap}
+.smallbtn{
+  border:1px solid var(--line);background:#11182a;color:#d9e3fa;border-radius:10px;padding:9px 11px;
+  font-size:11px;font-weight:800;cursor:pointer
+}
+.smallbtn.primary{background:linear-gradient(135deg,#7156ff,#2589ff);border:0;color:#fff}
+.controls{display:grid;gap:14px}
+.label{font-size:11px;color:#94a0bc;margin-bottom:7px;font-weight:800}
+select,input[type=color],input[type=range],input[type=text]{width:100%}
+select,input[type=text]{
+  background:#0b1120;color:#edf3ff;border:1px solid var(--line);border-radius:11px;padding:10px
+}
+input[type=color]{height:44px;background:#0b1120;border:1px solid var(--line);border-radius:11px;padding:4px}
+.row{display:grid;grid-template-columns:1fr 46px;gap:9px;align-items:center}
+.val{font-size:11px;text-align:right;color:#c9d4eb}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tab{
+  border:1px solid var(--line);background:#0b1120;color:#9ca9c4;border-radius:10px;padding:8px 10px;
+  font-size:11px;font-weight:800;cursor:pointer
+}
+.tab.active{background:#1d2742;color:#fff}
+.preset-tools{display:flex;gap:8px;margin-bottom:10px}
+.preset-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;max-height:575px;overflow:auto;padding-right:5px}
+.preset-grid::-webkit-scrollbar{width:7px}.preset-grid::-webkit-scrollbar-thumb{background:#2c3651;border-radius:9px}
+.preset{
+  position:relative;overflow:hidden;text-align:left;border:1px solid var(--line);background:#0c1221;color:#eef3ff;
+  border-radius:13px;padding:10px;min-height:66px;cursor:pointer;transition:.18s
+}
+.preset:hover{border-color:#6578aa;transform:translateY(-1px)}
+.preset.active{outline:2px solid #7f6cff;border-color:#8b7cff}
+.preset small{display:block;color:#7f8da8;font-size:9px;margin-top:3px;text-transform:uppercase;letter-spacing:.8px}
+.swatch{height:7px;border-radius:99px;margin-top:10px;box-shadow:0 0 15px #ffffff16}
+.toggleline{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#0b1120}
+.switch{position:relative;width:42px;height:24px;background:#283149;border-radius:99px;cursor:pointer}
+.switch i{position:absolute;width:18px;height:18px;top:3px;left:3px;border-radius:50%;background:white;transition:.2s}
+.switch.on{background:linear-gradient(90deg,#7658ff,#00c9ff)}.switch.on i{left:21px}
+.help{color:#94a0ba;font-size:11px;line-height:1.55}
+.help strong{color:#e7eefc}
+.log{height:140px;overflow:auto;background:#070a11;border:1px solid #20283b;border-radius:12px;padding:10px;font:11px/1.5 Consolas,monospace;color:#a8b7d3}
+.panel.hidden{display:none}
+.livepill{font-size:10px;padding:6px 8px;border-radius:99px;background:#10251d;color:#64e7ad;border:1px solid #1d6649}
+@media(max-width:1000px){
+ .app{grid-template-columns:1fr}.sidebar{height:auto;position:static;border-right:0;border-bottom:1px solid var(--line)}
+ .grid{grid-template-columns:1fr}.preset-grid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:650px){.preset-grid{grid-template-columns:1fr}.main{padding:16px}.sidebar{padding:16px}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand">MK1300 V2 <b>RGB Studio Ultra</b><small>Animated WebHID lighting controller</small></div>
+  <div class="status">
+    <div class="statusline"><span class="dot" id="dot"></span><b id="statusText">Disconnected</b></div>
+    <p id="deviceText">Connect your keyboard to enable hardware sync.</p>
+  </div>
+  <button class="btn primary" id="connectBtn">⚡ Connect Keyboard</button>
+  <button class="btn secondary" id="disconnectBtn">Disconnect</button>
+
+  <div class="navtitle">Studio</div>
+  <button class="nav active" data-panel="presets">✨ 96 Animated Presets</button>
+  <button class="nav" data-panel="custom">🎨 Custom Designer</button>
+  <button class="nav" data-panel="hardware">⌨️ Hardware Modes</button>
+  <button class="nav" data-panel="help">🛠 Help / Debug</button>
+
+  <div class="navtitle">Info</div>
+  <div class="help">HTML preview animations are fully live. Hardware support depends on what your MK1300 V2 firmware accepts.</div>
+</aside>
+
+<main class="main">
+  <div class="top">
+    <div><h1>Lighting Studio</h1><div class="sub">Pick a preset and watch it animate instantly on the virtual keyboard.</div></div>
+    <div class="badges"><span class="badge">96 Presets</span><span class="badge">Live Preview</span><span class="badge">WebHID</span></div>
+  </div>
+
+  <div class="grid">
+    <section>
+      <div class="card">
+        <h3>Live Animated Keyboard Preview</h3>
+        <div style="overflow:auto">
+          <div class="keyboard-shell" id="keyboardShell"><div class="keys" id="keys"></div></div>
+        </div>
+        <div class="previewbar">
+          <div class="previewname">Preset: <b id="activePresetName">Cyber Wave</b> <span class="livepill">● LIVE</span></div>
+          <div class="toolbar">
+            <button class="smallbtn" id="pauseBtn">Pause Preview</button>
+            <button class="smallbtn" id="randomBtn">Random Preset</button>
+            <button class="smallbtn primary" id="applyBtn">Apply / Sync</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <h3>Device Log</h3>
+        <div class="log" id="log">RGB Studio Ultra ready.\n</div>
+      </div>
+    </section>
+
+    <section class="controls">
+      <div class="card panel" id="panel-presets">
+        <h3>Animated Preset Library</h3>
+        <div class="tabs" id="categoryTabs"></div>
+        <div class="preset-tools">
+          <input type="text" id="search" placeholder="Search presets...">
+        </div>
+        <div class="preset-grid" id="presetGrid"></div>
+      </div>
+
+      <div class="card panel hidden" id="panel-custom">
+        <h3>Custom Designer</h3>
+        <div class="label">Animation Type</div>
+        <select id="customType">
+          <option>wave</option><option>pulse</option><option>breath</option><option>scanner</option>
+          <option>rain</option><option>sparkle</option><option>radial</option><option>plasma</option>
+          <option>comet</option><option>matrix</option><option>fire</option><option>checker</option>
+        </select>
+        <div style="height:10px"></div>
+        <div class="label">Color A</div><input type="color" id="c1" value="#7c5cff">
+        <div style="height:9px"></div>
+        <div class="label">Color B</div><input type="color" id="c2" value="#00d8ff">
+        <div style="height:9px"></div>
+        <div class="label">Color C</div><input type="color" id="c3" value="#ff2bd6">
+        <div style="height:12px"></div>
+        <div class="label">Speed</div><div class="row"><input type="range" id="customSpeed" min="0.2" max="3.5" value="1.2" step="0.1"><div class="val" id="customSpeedVal">1.2x</div></div>
+        <div class="label">Brightness</div><div class="row"><input type="range" id="customBrightness" min="10" max="100" value="100"><div class="val" id="customBrightnessVal">100%</div></div>
+        <button class="btn primary" style="margin-top:12px" id="useCustom">Preview Custom Effect</button>
+      </div>
+
+      <div class="card panel hidden" id="panel-hardware">
+        <h3>Hardware Sync</h3>
+        <div class="toggleline">
+          <div><b style="font-size:12px">Live Sync</b><div class="help">Streams animated frames to the keyboard.</div></div>
+          <div class="switch" id="liveSyncSwitch"><i></i></div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="label">Live Sync FPS</div>
+        <div class="row"><input type="range" id="syncFps" min="2" max="8" value="5"><div class="val" id="syncFpsVal">5</div></div>
+        <div style="height:12px"></div>
+        <div class="label">Hardware Mode</div>
+        <select id="mode">
+          <option value="1">Wave</option><option value="2">Breathing</option><option value="3">Spectrum</option>
+          <option value="4">Reactive</option><option value="5">Ripple</option><option value="6">Rain</option>
+          <option value="7">Trail</option><option value="8">Stars</option><option value="9">Pulse</option>
+          <option value="10">Flow</option><option value="11">Scanner</option><option value="12">Neon</option>
+          <option value="13">Fire</option><option value="14">Color Cycle</option><option value="15">Flash</option>
+          <option value="16">Static</option><option value="17">Aurora</option><option value="18">Starlight</option>
+        </select>
+        <div style="height:10px"></div>
+        <div class="label">Speed</div><div class="row"><input type="range" id="hwSpeed" min="0" max="4" value="2"><div class="val" id="hwSpeedVal">2</div></div>
+        <div class="label">Brightness</div><div class="row"><input type="range" id="hwBrightness" min="0" max="4" value="4"><div class="val" id="hwBrightnessVal">4</div></div>
+        <button class="btn primary" style="margin-top:12px" id="applyHardware">Apply Hardware Mode</button>
+      </div>
+
+      <div class="card panel hidden" id="panel-help">
+        <h3>Help / Debug</h3>
+        <div class="help">
+          <p><strong>Best way:</strong> run START_STUDIO.bat and use the localhost page it opens.</p>
+          <p>Close any official keyboard RGB software before connecting.</p>
+          <p>If the keyboard is hidden from WebHID, fully close Chromium and launch it with <strong>--disable-hid-blocklist</strong>.</p>
+          <p>For safety this build blocks firmware command <strong>0x55</strong> and known factory-reset subcommands.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+</div>
+
+<script>
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const clamp=(v,a=0,b=255)=>Math.max(a,Math.min(b,v));
+function hexRgb(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+function rgbHex(r,g,b){return "#"+[r,g,b].map(v=>clamp(Math.round(v)).toString(16).padStart(2,"0")).join("")}
+function mix(a,b,t){return a.map((v,i)=>v+(b[i]-v)*t)}
+function hsv(h,s,v){h=((h%360)+360)%360;s/=100;v/=100;let c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c,r=0,g=0,b=0;
+ if(h<60)[r,g,b]=[c,x,0];else if(h<120)[r,g,b]=[x,c,0];else if(h<180)[r,g,b]=[0,c,x];else if(h<240)[r,g,b]=[0,x,c];else if(h<300)[r,g,b]=[x,0,c];else[r,g,b]=[c,0,x];
+ return [(r+m)*255,(g+m)*255,(b+m)*255]}
+function grad(colors,t){t=((t%1)+1)%1;let p=t*(colors.length-1),i=Math.floor(p),f=p-i;return mix(hexRgb(colors[i]),hexRgb(colors[Math.min(i+1,colors.length-1)]),f)}
+function mul(c,k){return c.map(v=>clamp(v*k))}
+function css(c){return `rgb(${c.map(v=>Math.round(v)).join(",")})`}
+
+class HIDDriver{
+  constructor(){this.device=null;this.connected=false;this._readQueue=[];this._readBuffer=[];this.onLog=null}
+  log(m){if(this.onLog)this.onLog(m)}
+  async connect(){
+    if(!navigator.hid)throw new Error("WebHID unavailable. Use Chrome/Edge/Opera GX via localhost.");
+    const filters=[
+      {vendorId:0x36AE,usagePage:0xFF00,usage:0x02},
+      {vendorId:0x36AE,productId:0xFE9C,usagePage:0xFF00,usage:0x02},
+      ...[0x6D7B,0x6D7C,0x6D7D,0x6D7E,0x6D7F,0x6D80,0x6D81,0x6D82,0x6D83,0x68BD,0x0816,0x0817,0x0818,0x0819,0x7DFA,0x08A3,0x342D,0x9A9A].map(v=>({vendorId:v,usagePage:0xFF00,usage:0x02}))
+    ];
+    const devices=await navigator.hid.requestDevice({filters});if(!devices.length)throw new Error("No compatible HID selected.");
+    this.device=devices[0];let ok=false;(this.device.collections||[]).forEach(c=>{if(c.usagePage===0xFF00&&c.usage===0x02)ok=true});
+    if(!ok)throw new Error("Wrong HID interface selected.");
+    if(!this.device.opened)await this.device.open();
+    this.device.addEventListener("inputreport",e=>this._onInput(e));this.connected=true;this.log("Connected: "+(this.device.productName||"Gaming Keyboard"));return this.device;
+  }
+  disconnect(){if(this.device?.opened)this.device.close();this.device=null;this.connected=false;this.log("Disconnected")}
+  _onInput(e){const d=new Uint8Array(e.data.buffer);if(this._readQueue.length)this._readQueue.shift()(d);else this._readBuffer.push(d)}
+  _read(timeout=700){if(this._readBuffer.length)return Promise.resolve(this._readBuffer.shift());return new Promise(resolve=>{const fn=d=>{clearTimeout(tm);resolve(d)};const tm=setTimeout(()=>{let i=this._readQueue.indexOf(fn);if(i>=0)this._readQueue.splice(i,1);resolve(null)},timeout);this._readQueue.push(fn)})}
+  async sendCommand(cmd,payload=[],read=true){
+    if(cmd===0x55)throw new Error("Firmware command blocked.");
+    if(payload[0]===15&&payload[1]===255)throw new Error("Factory reset command blocked.");
+    if(!this.device?.opened)throw new Error("Keyboard not connected.");
+    const r=new Uint8Array(64);r[0]=cmd;for(let i=0;i<payload.length&&i<63;i++)r[i+1]=payload[i];
+    await this.device.sendReport(0,r);if(read){const x=await this._read();return x?Array.from(x):[]}await sleep(2);return [];
+  }
+  sendDeviceData(p=[]){return this.sendCommand(6,p,true)}
+  async setAllKeyColors(arr,keyCount=119){
+    const total=keyCount*3,chunk=56,chunks=Math.ceil(total/chunk);
+    for(let i=0;i<chunks;i++){
+      const off=i*chunk,rem=total-off,n=Math.min(chunk,rem),last=i===chunks-1,p=new Array(63).fill(0);
+      p[0]=18;p[1]=last&&rem%chunk>0?(rem%chunk)+3:chunk+3;p[2]=off&255;p[3]=(off>>8)&255;
+      for(let j=0;j<n;j++)p[7+j]=arr[off+j]||0;
+      await this.sendCommand(6,p,true);
+    }
+  }
+  async setHardwareAnimation(mode,brightness=4,speed=2){
+    const g=await this.sendDeviceData([10]);
+    const apply=async base=>{if(base?.length>=16){const c=base.slice(5,16);c[0]=0;c[2]=mode;c[3]=brightness;c[4]=speed;await this.sendDeviceData([11,c.length,0,0,...c])}};
+    await apply(g);this.log("Hardware effect command sent.");
+  }
+}
+
+const layout=[
+[21,0,0,1,"Esc"],[22,1,0,1,"1"],[23,2,0,1,"2"],[24,3,0,1,"3"],[25,4,0,1,"4"],[26,5,0,1,"5"],[27,6,0,1,"6"],[28,7,0,1,"7"],[29,8,0,1,"8"],[30,9,0,1,"9"],[31,10,0,1,"0"],[32,11,0,1,"-"],[33,12,0,1,"="],[34,13,0,2,"←"],
+[42,0,1,1.5,"Tab"],[43,1.5,1,1,"Q"],[44,2.5,1,1,"W"],[45,3.5,1,1,"E"],[46,4.5,1,1,"R"],[47,5.5,1,1,"T"],[48,6.5,1,1,"Y"],[49,7.5,1,1,"U"],[50,8.5,1,1,"I"],[51,9.5,1,1,"O"],[52,10.5,1,1,"P"],[53,11.5,1,1,"["],[54,12.5,1,1,"]"],[55,13.5,1,1.5,"\\"],
+[63,0,2,1.75,"Caps"],[64,1.75,2,1,"A"],[65,2.75,2,1,"S"],[66,3.75,2,1,"D"],[67,4.75,2,1,"F"],[68,5.75,2,1,"G"],[69,6.75,2,1,"H"],[70,7.75,2,1,"J"],[71,8.75,2,1,"K"],[72,9.75,2,1,"L"],[73,10.75,2,1,";"],[74,11.75,2,1,"'"],[76,12.75,2,2.25,"Enter"],
+[84,0,3,2.25,"Shift"],[86,2.25,3,1,"Z"],[87,3.25,3,1,"X"],[88,4.25,3,1,"C"],[89,5.25,3,1,"V"],[90,6.25,3,1,"B"],[91,7.25,3,1,"N"],[92,8.25,3,1,"M"],[93,9.25,3,1,"<"],[94,10.25,3,1,">"],[95,11.25,3,1,"?"],[97,12.25,3,2.75,"Shift"],
+[105,0,4,1.25,"Ctrl"],[106,1.25,4,1.25,"Win"],[107,2.5,4,1.25,"Alt"],[111,3.75,4,6.25,"Space"],[115,10,4,1.25,"Alt"],[116,11.25,4,1,"Menu"],[117,12.25,4,1.25,"Ctrl"],[118,13.5,4,1.5,"Fn"]
+];
+const keyMeta=layout.map(([idx,x,y,w,name])=>({idx,x,y,w,name,cx:x+w/2,cy:y+.5}));
+const keyMap=new Map(),keysEl=document.querySelector("#keys");
+const unit=50,gap=3;
+keyMeta.forEach(k=>{const d=document.createElement("button");d.className="key";d.textContent=k.name;d.style.left=(k.x*unit)+"px";d.style.top=(k.y*50)+"px";d.style.width=(k.w*unit-gap)+"px";d.dataset.idx=k.idx;keysEl.appendChild(d);keyMap.set(k.idx,d)});
+
+const categories=["Neon","Cyber","Nature","Fire","Ice","Space","Retro","Minimal"];
+const basePresets=[
+["Neon","Cyber Wave","wave",["#ff2bd6","#00e5ff","#7c5cff"],1.15],
+["Neon","Laser Lime","scanner",["#07130a","#39ff14","#d6ff00"],1.8],
+["Neon","Electric Candy","plasma",["#ff00cc","#3333ff","#00ffee"],1.25],
+["Neon","Pink Pulse","pulse",["#ff3cac","#784ba0","#2b86c5"],1.0],
+["Neon","Acid Rain","rain",["#0a0f12","#00ff88","#c8ff00"],1.6],
+["Neon","Club Strobe","checker",["#ff006e","#00f5d4","#fee440"],2.5],
+["Neon","Toxic Comet","comet",["#111111","#76ff03","#ccff00"],1.7],
+["Neon","Neon Breath","breath",["#9d4edd","#00bbf9","#f15bb5"],.8],
+["Neon","Miami Strip","wave",["#ff4ecd","#00d4ff","#ffd166"],1.35],
+["Neon","Purple Voltage","sparkle",["#240046","#7b2cbf","#e0aaff"],1.9],
+["Neon","Aqua Flash","radial",["#001219","#00b4d8","#90e0ef"],1.55],
+["Neon","RGB Reactor","plasma",["#ff0000","#00ff00","#0000ff"],1.2],
+
+["Cyber","Night City","wave",["#0a0014","#6a00ff","#00e5ff"],.95],
+["Cyber","Data Stream","matrix",["#000000","#00ff66","#9dffb8"],1.5],
+["Cyber","Violet Grid","checker",["#0b0b15","#6c4cff","#b48cff"],1.1],
+["Cyber","Holo Scanner","scanner",["#06141b","#00f0ff","#ffffff"],1.4],
+["Cyber","Blue Protocol","comet",["#020617","#2563eb","#22d3ee"],1.3],
+["Cyber","Magenta Core","radial",["#120014","#ff00c8","#6a5cff"],1.15],
+["Cyber","System Pulse","pulse",["#07111f","#00a6fb","#0582ca"],1.45],
+["Cyber","Terminal Green","matrix",["#020804","#00ff41","#b7ffcb"],1.2],
+["Cyber","Quantum Blur","plasma",["#001d3d","#7b2cbf","#00f5d4"],1.05],
+["Cyber","Chrome Edge","wave",["#c0c7d1","#ffffff","#4cc9f0"],1.0],
+["Cyber","Red Alert","scanner",["#130000","#ff1e1e","#ff8a00"],2.0],
+["Cyber","Ghost Link","sparkle",["#070b16","#8ecae6","#cdb4db"],.9],
+
+["Nature","Aurora Borealis","wave",["#001219","#00ffa3","#00b4d8","#8a5cff"],.65],
+["Nature","Ocean Current","wave",["#001845","#0077b6","#90e0ef"],.75],
+["Nature","Forest Glow","sparkle",["#071a0f","#2dc653","#b7e4c7"],.8],
+["Nature","Sunset Flow","wave",["#ff4d6d","#ff9f43","#ffe66d"],.7],
+["Nature","Rainstorm","rain",["#08111e","#3a86ff","#a8dadc"],1.35],
+["Nature","Deep Sea Pulse","pulse",["#001219","#005f73","#0a9396"],.8],
+["Nature","Cherry Blossom","sparkle",["#fff0f3","#ffb3c1","#ff4d6d"],.9],
+["Nature","Northern Mist","breath",["#caf0f8","#48cae4","#5e60ce"],.55],
+["Nature","Desert Heat","wave",["#7f5539","#ddb892","#ede0d4"],.65],
+["Nature","Moon Tide","radial",["#03045e","#0077b6","#ade8f4"],.7],
+["Nature","Storm Flash","checker",["#090f1a","#8ecae6","#ffffff"],1.8],
+["Nature","Emerald River","comet",["#081c15","#2d6a4f","#95d5b2"],.95],
+
+["Fire","Inferno","fire",["#170000","#ff2b00","#ff7b00","#ffd000"],1.25],
+["Fire","Molten Core","radial",["#2b0000","#d00000","#ffba08"],.9],
+["Fire","Lava Flow","wave",["#370617","#dc2f02","#ffba08"],1.0],
+["Fire","Phoenix","comet",["#3d0000","#ff5400","#ffdd00"],1.4],
+["Fire","Redline","scanner",["#160000","#ff1744","#ff9100"],1.7],
+["Fire","Ember Rain","rain",["#100b05","#ff6d00","#ffc300"],1.2],
+["Fire","Solar Flare","pulse",["#3a0a00","#ff7b00","#fff3b0"],1.15],
+["Fire","Dragon Breath","breath",["#310000","#b30000","#ff8800"],.75],
+["Fire","Hot Metal","plasma",["#111111","#ff3d00","#ffd54f"],1.3],
+["Fire","Volcano","fire",["#090909","#7f0000","#ff5a00"],.85],
+["Fire","Crimson Spark","sparkle",["#140000","#ff003c","#ff8c42"],1.8],
+["Fire","Heat Grid","checker",["#1b0900","#ff6a00","#ffd166"],1.45],
+
+["Ice","Arctic Wave","wave",["#03045e","#00b4d8","#caf0f8"],.8],
+["Ice","Frost Breath","breath",["#0b132b","#5bc0be","#e0fbfc"],.65],
+["Ice","Glacier","radial",["#001d3d","#4cc9f0","#f1faee"],.55],
+["Ice","Snow Sparkle","sparkle",["#0a1128","#dff6ff","#ffffff"],1.1],
+["Ice","Polar Scanner","scanner",["#001219","#48cae4","#ffffff"],1.1],
+["Ice","Frozen Pulse","pulse",["#03045e","#4361ee","#bde0fe"],.9],
+["Ice","Blue Comet","comet",["#020617","#38bdf8","#e0f2fe"],1.25],
+["Ice","Crystal Grid","checker",["#0d1b2a","#778da9","#e0e1dd"],.9],
+["Ice","Ice Rain","rain",["#02111d","#00b4d8","#ade8f4"],1.4],
+["Ice","Cold Plasma","plasma",["#001233","#5c7cfa","#80ffdb"],.95],
+["Ice","Winter Dawn","wave",["#a9def9","#e4c1f9","#f1c0e8"],.6],
+["Ice","Frozen Neon","scanner",["#001219","#00ffff","#7d5cff"],1.55],
+
+["Space","Galaxy","plasma",["#030014","#3a0ca3","#7209b7","#4cc9f0"],.8],
+["Space","Nebula","wave",["#10002b","#5a189a","#ff4d6d"],.6],
+["Space","Starfield","sparkle",["#000000","#4cc9f0","#ffffff"],1.0],
+["Space","Supernova","radial",["#030014","#ff006e","#ffbe0b"],1.1],
+["Space","Meteor Shower","rain",["#010409","#577590","#f9c74f"],1.5],
+["Space","Cosmic Pulse","pulse",["#03045e","#8338ec","#ff006e"],.75],
+["Space","Event Horizon","radial",["#000000","#240046","#7b2cbf"],.55],
+["Space","Warp Drive","comet",["#000814","#00b4d8","#ffffff"],1.8],
+["Space","Mars Dust","wave",["#3d0c02","#9d0208","#f48c06"],.75],
+["Space","Alien Signal","scanner",["#00120b","#00ff88","#5eff00"],1.3],
+["Space","Saturn Rings","wave",["#2b1b17","#d4a373","#faedcd"],.5],
+["Space","Deep Orbit","breath",["#000814","#001d3d","#003566"],.5],
+
+["Retro","Synthwave","wave",["#2b1055","#ff2bd6","#00e5ff"],1.0],
+["Retro","Arcade RGB","checker",["#ff006e","#00f5d4","#fee440"],1.8],
+["Retro","CRT Green","matrix",["#000500","#00ff41","#70ff8f"],1.1],
+["Retro","Gameboy Glow","pulse",["#0f380f","#306230","#8bac0f","#9bbc0f"],.75],
+["Retro","VHS Sunset","wave",["#ff6b6b","#feca57","#48dbfb","#5f27cd"],.8],
+["Retro","80s Grid","scanner",["#13002e","#ff00cc","#00ffff"],1.35],
+["Retro","Pixel Storm","rain",["#0b0b0b","#00ffcc","#ff00cc"],1.6],
+["Retro","Retro Candy","sparkle",["#ff9ff3","#feca57","#48dbfb"],1.25],
+["Retro","Purple Arcade","plasma",["#240046","#9d4edd","#ff70a6"],1.0],
+["Retro","Orange CRT","matrix",["#120900","#ff8c00","#ffd166"],1.0],
+["Retro","Waveform","comet",["#001427","#708d81","#f4d58d"],1.15],
+["Retro","Old School Neon","breath",["#001d3d","#00b4d8","#ff4ecd"],.85],
+
+["Minimal","Pure White","breath",["#0b0b0b","#ffffff","#dfe7f2"],.45],
+["Minimal","Soft Blue","breath",["#09111f","#4ea8de","#caf0f8"],.45],
+["Minimal","Warm Amber","pulse",["#120b00","#f6bd60","#fff1d0"],.5],
+["Minimal","Mono Wave","wave",["#151515","#777777","#eeeeee"],.6],
+["Minimal","Stealth Purple","wave",["#050505","#2b193d","#6d44a5"],.55],
+["Minimal","Cool Gray","scanner",["#0a0a0a","#5c677d","#dee2e6"],.65],
+["Minimal","Mint","breath",["#06110d","#52b788","#d8f3dc"],.5],
+["Minimal","Rose","pulse",["#16090d","#d88c9a","#f2d0d9"],.55],
+["Minimal","Gold Line","scanner",["#0f0c05","#d4a017","#fff1b8"],.75],
+["Minimal","Blue Line","scanner",["#050914","#4ea8de","#caf0f8"],.8],
+["Minimal","Slate Flow","wave",["#0d1117","#34495e","#95a5a6"],.5],
+["Minimal","Dark Breath","breath",["#020203","#171923","#44475a"],.4],
+];
+
+const presets=basePresets.map((p,i)=>({id:i+1,cat:p[0],name:p[1],type:p[2],colors:p[3],speed:p[4],brightness:1}));
+let activePreset=presets[0],previewPaused=false,customPreset=null,category="All",liveSync=false,lastSync=0,syncBusy=false;
+const driver=new HIDDriver(), logEl=document.querySelector("#log");
+driver.onLog=m=>log(m);
+function log(m){logEl.textContent+=`[${new Date().toLocaleTimeString()}] ${m}\n`;logEl.scrollTop=logEl.scrollHeight}
+
+function effectColor(p,k,t){
+ const sp=p.speed||1, tt=t*sp, cols=p.colors;
+ const x=k.cx/15,y=k.cy/5, cx=.5,cy=.5,dx=x-cx,dy=y-cy,dist=Math.sqrt(dx*dx+dy*dy);
+ let c=[0,0,0],q=0;
+ switch(p.type){
+  case "wave": q=x*1.25+y*.08-tt*.22;c=grad(cols,q);break;
+  case "pulse": q=(Math.sin(tt*3-k.cx*.18)+1)/2;c=mul(grad(cols,(x+y*.2+tt*.07)%1),.18+.82*q);break;
+  case "breath": q=(Math.sin(tt*2.3)+1)/2;c=mul(grad(cols,.35+x*.25),.15+.85*q);break;
+  case "scanner": {let s=(Math.sin(tt*2.1)*.5+.5)*1.2-.1,d=Math.abs(x-s);c=mul(grad(cols,x),Math.max(.06,1-d*6));break}
+  case "rain": {let seed=(k.idx*37)%101/101, drop=((tt*.38+seed+y*.55)%1),b=Math.max(.06,1-Math.abs(drop-.5)*3.8);c=mul(grad(cols,(seed+x*.2)%1),b);break}
+  case "sparkle": {let s=(Math.sin(k.idx*12.9898+tt*7.5)*43758.5453)%1;s=Math.abs(s);let b=s>.82?1:.14;c=mul(grad(cols,(k.idx%17)/17),b);break}
+  case "radial": q=dist*1.7-tt*.3;c=grad(cols,q);c=mul(c,.28+.72*((Math.sin((dist*14-tt*5))+1)/2));break;
+  case "plasma": q=(Math.sin(x*9+tt*2)+Math.sin(y*7-tt*1.7)+Math.sin((x+y)*6+tt))/6+.5;c=grad(cols,q);break;
+  case "comet": {let pos=(tt*.17)%1.25-.12,d=Math.abs(x-pos);let b=Math.max(.05,1-d*5.5);c=mul(grad(cols,x+tt*.1),b);break}
+  case "matrix": {let seed=(k.idx*19)%97/97,fall=(tt*.23+seed)%1,b=Math.max(.03,1-Math.abs(y-fall)*5);c=mul(grad(cols,seed),b);break}
+  case "fire": {let n=(Math.sin(k.idx*2.17+tt*5)+Math.sin(k.cx*3.1-tt*2.7))/4+.5;let heat=clamp((1-y)*.75+n*.65,0,1);c=grad(cols,heat);c=mul(c,.35+.65*heat);break}
+  case "checker": {let z=(Math.floor(k.x)+Math.floor(k.y)+Math.floor(tt*4))%2;c=grad(cols,z?0.15:.78);break}
+  default:c=grad(cols,x);
+ }
+ return mul(c,p.brightness||1);
+}
+function draw(tms){
+ const t=tms/1000;if(!previewPaused){
+  const p=customPreset||activePreset;
+  const frame=Array(119*3).fill(0);
+  keyMeta.forEach(k=>{
+    const c=effectColor(p,k,t),el=keyMap.get(k.idx),s=css(c);
+    el.style.borderColor=s;
+    el.style.background=`linear-gradient(180deg,${css(mul(c,.24))},#101625)`;
+    el.style.boxShadow=`inset 0 -3px 7px #0009,0 0 16px ${s}`;
+    frame[k.idx*3]=Math.round(c[0]);frame[k.idx*3+1]=Math.round(c[1]);frame[k.idx*3+2]=Math.round(c[2]);
+  });
+  const fps=+document.querySelector("#syncFps").value,interval=1000/fps;
+  if(liveSync&&driver.connected&&!syncBusy&&tms-lastSync>=interval){
+    lastSync=tms;syncBusy=true;driver.setAllKeyColors(frame,119).catch(e=>log("Sync error: "+e.message)).finally(()=>syncBusy=false);
+  }
+ }
+ requestAnimationFrame(draw)
+}
+requestAnimationFrame(draw);
+
+function renderTabs(){
+ const box=document.querySelector("#categoryTabs");box.innerHTML="";
+ ["All",...categories].forEach(c=>{let b=document.createElement("button");b.className="tab"+(category===c?" active":"");b.textContent=c;b.onclick=()=>{category=c;renderTabs();renderPresets()};box.appendChild(b)})
+}
+function renderPresets(){
+ const q=document.querySelector("#search").value.toLowerCase(),box=document.querySelector("#presetGrid");box.innerHTML="";
+ presets.filter(p=>(category==="All"||p.cat===category)&&p.name.toLowerCase().includes(q)).forEach(p=>{
+  const b=document.createElement("button");b.className="preset"+(activePreset.id===p.id&&!customPreset?" active":"");
+  b.innerHTML=`<b>${p.name}</b><small>${p.cat} • ${p.type}</small><div class="swatch" style="background:linear-gradient(90deg,${p.colors.join(",")})"></div>`;
+  b.onclick=()=>{activePreset=p;customPreset=null;document.querySelector("#activePresetName").textContent=p.name;renderPresets()};
+  box.appendChild(b)
+ });
+}
+renderTabs();renderPresets();
+
+document.querySelector("#search").oninput=renderPresets;
+document.querySelector("#pauseBtn").onclick=()=>{previewPaused=!previewPaused;document.querySelector("#pauseBtn").textContent=previewPaused?"Resume Preview":"Pause Preview"};
+document.querySelector("#randomBtn").onclick=()=>{activePreset=presets[Math.floor(Math.random()*presets.length)];customPreset=null;document.querySelector("#activePresetName").textContent=activePreset.name;renderPresets()};
+document.querySelector("#customSpeed").oninput=e=>document.querySelector("#customSpeedVal").textContent=e.target.value+"x";
+document.querySelector("#customBrightness").oninput=e=>document.querySelector("#customBrightnessVal").textContent=e.target.value+"%";
+document.querySelector("#syncFps").oninput=e=>document.querySelector("#syncFpsVal").textContent=e.target.value;
+document.querySelector("#hwSpeed").oninput=e=>document.querySelector("#hwSpeedVal").textContent=e.target.value;
+document.querySelector("#hwBrightness").oninput=e=>document.querySelector("#hwBrightnessVal").textContent=e.target.value;
+
+document.querySelector("#useCustom").onclick=()=>{
+ customPreset={name:"Custom Effect",type:document.querySelector("#customType").value,colors:[document.querySelector("#c1").value,document.querySelector("#c2").value,document.querySelector("#c3").value],speed:+document.querySelector("#customSpeed").value,brightness:+document.querySelector("#customBrightness").value/100};
+ document.querySelector("#activePresetName").textContent="Custom "+customPreset.type;renderPresets();
+};
+
+document.querySelector("#liveSyncSwitch").onclick=e=>{
+ const s=e.currentTarget;liveSync=!liveSync;s.classList.toggle("on",liveSync);
+ log(liveSync?"Live Sync enabled.":"Live Sync disabled.");
+};
+
+document.querySelector("#connectBtn").onclick=async()=>{
+ try{const d=await driver.connect();document.querySelector("#dot").style.background="var(--good)";document.querySelector("#statusText").textContent="Connected";document.querySelector("#deviceText").textContent=`${d.productName||"Keyboard"} • VID ${d.vendorId.toString(16).toUpperCase()} PID ${d.productId.toString(16).toUpperCase()}`}
+ catch(e){log("ERROR: "+e.message);alert(e.message)}
+};
+document.querySelector("#disconnectBtn").onclick=()=>{driver.disconnect();document.querySelector("#dot").style.background="var(--bad)";document.querySelector("#statusText").textContent="Disconnected";document.querySelector("#deviceText").textContent="Connect your keyboard to enable hardware sync."};
+
+document.querySelector("#applyBtn").onclick=async()=>{
+ try{
+  if(!driver.connected)throw new Error("Connect the keyboard first.");
+  const p=customPreset||activePreset,arr=Array(119*3).fill(0),t=performance.now()/1000;
+  keyMeta.forEach(k=>{const c=effectColor(p,k,t);arr[k.idx*3]=Math.round(c[0]);arr[k.idx*3+1]=Math.round(c[1]);arr[k.idx*3+2]=Math.round(c[2])});
+  await driver.setAllKeyColors(arr,119);log("Current animated frame applied.");
+ }catch(e){log("ERROR: "+e.message);alert(e.message)}
+};
+document.querySelector("#applyHardware").onclick=async()=>{try{await driver.setHardwareAnimation(+document.querySelector("#mode").value,+document.querySelector("#hwBrightness").value,+document.querySelector("#hwSpeed").value)}catch(e){log("ERROR: "+e.message);alert(e.message)}};
+
+document.querySelectorAll(".nav").forEach(b=>b.onclick=()=>{document.querySelectorAll(".nav").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.querySelectorAll(".panel").forEach(p=>p.classList.add("hidden"));document.querySelector("#panel-"+b.dataset.panel).classList.remove("hidden")});
+
+const shell=document.querySelector("#keyboardShell");
+shell.onmousemove=e=>{const r=shell.getBoundingClientRect();shell.style.setProperty("--mx",((e.clientX-r.left)/r.width*100)+"%");shell.style.setProperty("--my",((e.clientY-r.top)/r.height*100)+"%")};
+</script>
+</body>
+</html>
